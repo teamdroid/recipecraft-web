@@ -1,8 +1,8 @@
 from django.db import models
 
 
-class Ingredients(models.Model):
-    idingredient = models.AutoField(db_column='idIngredient', primary_key=True)
+class Ingredient(models.Model):
+    id_ingredient = models.AutoField(db_column='idIngredient', primary_key=True)
     title_en = models.TextField(blank=True, null=True)
     title_ru = models.TextField(blank=True, null=True)
 
@@ -12,38 +12,48 @@ class Ingredients(models.Model):
 
 
 class Instruction(models.Model):
-    idinstruction = models.AutoField(db_column='idInstruction', primary_key=True)
+    id_instruction = models.AutoField(db_column='idInstruction', primary_key=True)
     title_ru = models.TextField(blank=True, null=True)
     title_en = models.TextField(blank=True, null=True)
-    idrecipe = models.ForeignKey('Recipes', models.DO_NOTHING, db_column='idRecipe', blank=True, null=True)
+    recipe = models.ForeignKey('Recipe',
+                               models.CASCADE,
+                               related_name='instructions',
+                               db_column='idRecipe',
+                               blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'instruction'
 
 
-class RecipeIngredients(models.Model):
-    idrecipe = models.ForeignKey('Recipes', models.DO_NOTHING, db_column='idRecipe')
-    idingredient = models.ForeignKey(Ingredients, models.DO_NOTHING, db_column='idIngredient')
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey('Recipe',
+                               on_delete=models.CASCADE,
+                               related_name='recipe_ingredients',
+                               db_column='idRecipe')
+    ingredient = models.ForeignKey('Ingredient',
+                                   on_delete=models.CASCADE,
+                                   related_name='unit',
+                                   db_column='idIngredient')
     amount = models.FloatField(blank=True, null=True)
-    idunitmeasure = models.ForeignKey('UnitMeasure', models.DO_NOTHING, db_column='idUnitMeasure')
+    unit_measure = models.ForeignKey('UnitMeasure', models.CASCADE, db_column='idUnitMeasure')
 
     class Meta:
         managed = False
         db_table = 'recipe_ingredients'
 
 
-class RecipeTypes(models.Model):
-    idrecipe = models.ForeignKey('Recipes', models.DO_NOTHING, db_column='idRecipe')
-    idtype = models.ForeignKey('TypeRecipe', models.DO_NOTHING, db_column='idType')
+class RecipeType(models.Model):
+    recipe = models.ForeignKey('Recipe', models.CASCADE, db_column='idRecipe')
+    type = models.ForeignKey('TypeRecipe', models.CASCADE, db_column='idType')
 
     class Meta:
         managed = False
         db_table = 'recipe_types'
 
 
-class Recipes(models.Model):
-    idrecipe = models.AutoField(db_column='idRecipe', primary_key=True)
+class Recipe(models.Model):
+    id_recipe = models.AutoField(db_column='idRecipe', primary_key=True)
     title_ru = models.CharField(max_length=100, blank=True, null=True)
     title_en = models.CharField(max_length=100, blank=True, null=True)
     time = models.IntegerField(blank=True, null=True)
@@ -51,6 +61,11 @@ class Recipes(models.Model):
     portion = models.IntegerField(blank=True, null=True)
     type = models.CharField(max_length=100, blank=True, null=True)
     url_source = models.CharField(max_length=100, blank=True, null=True)
+    ingredients = models.ManyToManyField('Ingredient',
+                                         related_name='recipes',
+                                         related_query_name='recipes',
+                                         through='RecipeIngredient',
+                                         through_fields=('recipe', 'ingredient'))
 
     class Meta:
         managed = False
@@ -58,7 +73,7 @@ class Recipes(models.Model):
 
 
 class ReportMessage(models.Model):
-    idreport = models.AutoField(db_column='idReport', primary_key=True)
+    id_report = models.AutoField(db_column='idReport', primary_key=True)
     date = models.DateField(blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
@@ -70,7 +85,7 @@ class ReportMessage(models.Model):
 
 
 class TypeRecipe(models.Model):
-    idtype = models.AutoField(db_column='idType', primary_key=True)
+    id_type = models.AutoField(db_column='idType', primary_key=True)
     title_ru = models.CharField(max_length=100, blank=True, null=True)
     title_en = models.CharField(max_length=100, blank=True, null=True)
 
@@ -80,7 +95,7 @@ class TypeRecipe(models.Model):
 
 
 class UnitMeasure(models.Model):
-    idunitmeasure = models.AutoField(db_column='idUnitMeasure', primary_key=True)
+    id_unit_measure = models.AutoField(db_column='idUnitMeasure', primary_key=True)
     title_ru = models.CharField(max_length=100, blank=True, null=True)
     title_en = models.CharField(max_length=100, blank=True, null=True)
 
