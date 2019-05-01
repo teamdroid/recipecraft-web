@@ -6,6 +6,9 @@ class Ingredient(models.Model):
     title_en = models.TextField(blank=True, null=True)
     title_ru = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return self.title_ru.__str__()
+
     class Meta:
         managed = False
         db_table = 'ingredients'
@@ -20,6 +23,9 @@ class Instruction(models.Model):
                                related_name='instructions',
                                db_column='idRecipe',
                                blank=True, null=True)
+
+    def __str__(self):
+        return "Инструкция #" + self.id_instruction.__str__()
 
     class Meta:
         managed = False
@@ -37,6 +43,9 @@ class RecipeIngredient(models.Model):
                                    db_column='idIngredient')
     amount = models.FloatField(blank=True, null=True)
     unit_measure = models.ForeignKey('UnitMeasure', models.CASCADE, db_column='idUnitMeasure')
+
+    def __str__(self):
+        return "Ингредиент #" + self.id.__str__()
 
     class Meta:
         managed = False
@@ -66,6 +75,9 @@ class Recipe(models.Model):
                                          related_query_name='recipes',
                                          through='RecipeIngredient',
                                          through_fields=('recipe', 'ingredient'))
+
+    def __str__(self):
+        return self.title_ru
 
     class Meta:
         managed = False
@@ -98,6 +110,9 @@ class UnitMeasure(models.Model):
     id_unit_measure = models.AutoField(db_column='idUnitMeasure', primary_key=True)
     title_ru = models.CharField(max_length=100, blank=True, null=True)
     title_en = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.title_ru
 
     class Meta:
         managed = False
