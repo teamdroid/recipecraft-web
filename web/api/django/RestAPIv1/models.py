@@ -86,10 +86,10 @@ class Recipe(models.Model):
 
 class ReportMessage(models.Model):
     id_report = models.AutoField(db_column='idReport', primary_key=True)
-    date = models.DateField(blank=True, null=True)
+    date = models.DateField(blank=True, null=True, auto_now_add=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
-    message = models.TextField(blank=True, null=True)
+    message = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False

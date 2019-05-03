@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from RestAPIv1.models import Recipe, RecipeIngredient, Ingredient, Instruction
+from RestAPIv1.models import Recipe, RecipeIngredient, Ingredient, Instruction, ReportMessage
 
 
 class InstructionSerializer(serializers.ModelSerializer):
@@ -46,3 +46,13 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'type',
                   'recipe_ingredients',
                   'instructions')
+
+
+class ReportMessageSerializer(serializers.ModelSerializer):
+    """Serializer for /report/ view"""
+    email = serializers.EmailField(max_length=100, allow_null=False)
+    message = serializers.CharField(allow_blank=False, allow_null=False)
+
+    class Meta:
+        model = ReportMessage
+        fields = ('name', 'email', 'message')
