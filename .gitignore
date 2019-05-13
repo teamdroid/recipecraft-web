@@ -6,3 +6,7 @@ __pycache__/
 venv
 migrations 
 local_settings.py
+admin/
+easy_select2/
+rest_framework/
+apps/

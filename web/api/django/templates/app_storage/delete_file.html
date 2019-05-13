@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 alert-danger">
+                <p>Are you sure you want to delete {{ object.file.name }}?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, i'm sure.</button>
+                    <a class="btn btn-info" href="{% url 'storage' %}">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
