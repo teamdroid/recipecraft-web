@@ -117,3 +117,26 @@ class UnitMeasure(models.Model):
     class Meta:
         managed = False
         db_table = 'unit_measure'
+
+
+class GoogleUser(models.Model):
+    uid = models.CharField(max_length=50, primary_key=True, blank=False, null=False, unique=True)
+    first_name = models.CharField(max_length=100, blank=True, null=True)
+    last_name = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(blank=False, null=False)
+
+    def __str__(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
+
+class UserFavoriteRecipe(models.Model):
+    google_user = models.ForeignKey(GoogleUser, related_name='favorite_recipes', on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("google_user", "recipe")
+
+    def __str__(self):
+        return self.recipe.title_ru
+
+# TODO:refactor __str__ methods

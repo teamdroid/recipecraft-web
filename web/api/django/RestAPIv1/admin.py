@@ -3,7 +3,8 @@ from django.db import models
 from django.forms import widgets
 from easy_select2 import select2_modelform
 
-from RestAPIv1.models import Recipe, RecipeIngredient, Ingredient, Instruction, UnitMeasure
+from RestAPIv1.models import Recipe, RecipeIngredient, Ingredient, Instruction, UnitMeasure, GoogleUser, \
+    UserFavoriteRecipe
 
 
 class InstructionInline(admin.TabularInline):
@@ -20,13 +21,18 @@ class IngredientRecipeInline(admin.TabularInline):
     extra = 1
 
 
+class UserFavoriteRecipeInline(admin.TabularInline):
+    model = UserFavoriteRecipe
+    extra = 1
+
+
 @admin.register(UnitMeasure)
 class RecipeAdmin(admin.ModelAdmin):
     fields = ['title_ru', 'title_en']
 
 
 @admin.register(Ingredient)
-class RecipeAdmin(admin.ModelAdmin):
+class RecipeAdmin(admin.ModelAdmin):  # TODO:Refactor class name
     fields = ['title_ru', 'title_en']
     search_fields = ['title_ru']
     formfield_overrides = {
@@ -43,3 +49,10 @@ class RecipeAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': widgets.TextInput(attrs={'size': '40'})}
     }
+
+
+@admin.register(GoogleUser)
+class GoogleUserAdmin(admin.ModelAdmin):
+    fields = ['uid', 'first_name', 'last_name', 'email']
+    search_fields = ['uid', 'first_name', 'last_name', 'email']
+    inlines = [UserFavoriteRecipeInline]

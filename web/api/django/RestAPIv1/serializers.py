@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from RestAPIv1.models import Recipe, RecipeIngredient, Ingredient, Instruction, ReportMessage
+from RestAPIv1.models import Recipe, RecipeIngredient, Ingredient, Instruction, ReportMessage, GoogleUser, \
+    UserFavoriteRecipe
 
 
 class InstructionSerializer(serializers.ModelSerializer):
@@ -56,3 +57,81 @@ class ReportMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportMessage
         fields = ('name', 'email', 'message')
+
+
+class UserFavoriteRecipeWriteSerializer(serializers.ModelSerializer):
+    recipe = RecipeSerializer(read_only=True)
+
+    class Meta:
+        model = UserFavoriteRecipe
+        fields = ('id', 'recipe')
+
+
+class UserFavoriteRecipeReadSerializer(serializers.ModelSerializer):
+    recipe = serializers.IntegerField(source='recipe.id_recipe')
+
+    class Meta:
+        model = UserFavoriteRecipe
+        fields = ('recipe',)
+
+
+class GoogleUserWriteSerializer(serializers.ModelSerializer):
+    favorite_recipes = UserFavoriteRecipeWriteSerializer(many=True)
+
+    class Meta:
+        model = GoogleUser
+        fields = ('uid', 'first_name', 'last_name', 'email', 'favorite_recipes')
+
+
+class GoogleUserReadSerializer(serializers.ModelSerializer):
+    favorite_recipes = UserFavoriteRecipeReadSerializer(many=True)
+
+    class Meta:
+        model = GoogleUser
+        fields = ('uid', 'first_name', 'last_name', 'email', 'favorite_recipes')
+
+    def create(self, validated_data):
+        favorite_recipes_data = validated_data.pop('favorite_recipes')
+        google_user = GoogleUser.objects.create(**validated_data)
+
+        try:
+            for item in favorite_recipes_data:
+                UserFavoriteRecipe.objects.create(google_user=google_user, recipe_id=item['recipe']['id_recipe'])
+        except:
+            google_user.delete()
+            raise
+        return google_user
+
+
+class GoogleUserUpdateRecipesSerializer(serializers.ModelSerializer):
+    favorite_recipes = UserFavoriteRecipeReadSerializer(many=True)
+
+    class Meta:
+        model = GoogleUser
+        fields = ('favorite_recipes',)
+
+    def update(self, instance, validated_data):
+        favorite_recipes_data = validated_data.get('favorite_recipes')
+
+        for item in favorite_recipes_data:
+            UserFavoriteRecipe.objects.create(google_user=instance, recipe_id=item['recipe']['id_recipe'])
+
+        return instance
+
+
+class GoogleUserDeleteRecipesSerializer(serializers.ModelSerializer):
+    favorite_recipes = UserFavoriteRecipeReadSerializer(many=True)
+
+    class Meta:
+        model = GoogleUser
+        fields = ('favorite_recipes',)
+
+    def update(self, instance, validated_data):
+        favorite_recipes_data = validated_data.get('favorite_recipes')
+
+        for item in favorite_recipes_data:
+            temp = UserFavoriteRecipe.objects.filter(recipe_id=item['recipe']['id_recipe'])
+            if temp:
+                temp.delete()
+
+        return instance
