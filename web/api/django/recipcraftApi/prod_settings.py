@@ -1,7 +1,12 @@
+import os
+from .settings import BASE_DIR
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ''
 
-#DB Settings
+DEBUG = False
+
+# DB Settings
 
 DATABASES = {
     'default': {
@@ -13,3 +18,6 @@ DATABASES = {
         'PORT': '80',
     }
 }
+
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
