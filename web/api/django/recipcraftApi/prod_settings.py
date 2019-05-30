@@ -4,6 +4,8 @@ from .settings import BASE_DIR
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ''
 
+ALLOWED_HOSTS = []  # Add your hosts
+
 DEBUG = False
 
 # DB Settings

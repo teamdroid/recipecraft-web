@@ -52,15 +52,6 @@ class RecipeIngredient(models.Model):
         db_table = 'recipe_ingredients'
 
 
-class RecipeType(models.Model):
-    recipe = models.ForeignKey('Recipe', models.CASCADE, db_column='idRecipe')
-    type = models.ForeignKey('TypeRecipe', models.CASCADE, db_column='idType')
-
-    class Meta:
-        managed = False
-        db_table = 'recipe_types'
-
-
 class Recipe(models.Model):
     id_recipe = models.AutoField(db_column='idRecipe', primary_key=True)
     title_ru = models.CharField(max_length=100, blank=True, null=True)
@@ -70,11 +61,6 @@ class Recipe(models.Model):
     portion = models.IntegerField(blank=True, null=True)
     type = models.CharField(max_length=100, blank=True, null=True)
     url_source = models.CharField(max_length=100, blank=True, null=True)
-    ingredients = models.ManyToManyField('Ingredient',
-                                         related_name='recipes',
-                                         related_query_name='recipes',
-                                         through='RecipeIngredient',
-                                         through_fields=('recipe', 'ingredient'))
 
     def __str__(self):
         return self.title_ru
