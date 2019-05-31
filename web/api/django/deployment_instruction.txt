@@ -1,0 +1,191 @@
+All actions are performed under Debian 4.9.130-2 (2018-10-27) x86_64.
+
+Before deploying, update all packages.
+
+	root@domain.net:~# apt update
+	root@domain.net:~# apt list --upgradable
+	root@domain.net:~# apt ugrade
+
+If sudo is not installed on your system, install it.
+
+	root@domain.net:~# apt install sudo
+
+The next step is to create a user.
+
+	root@domain.net:~# adduser USERNAME
+	root@domain.net:~# usermode -aG sudo USERNAME
+
+In the future, we will not need the root user.
+Reconnect under the new user USERNAME.
+Let's start installing the necessary software.
+
+Let's start with python:
+Compile python 3.7 from source code.
+	
+	USERNAME@domain.net:~$ sudo apt-get install -y make build-essential libssl-dev zlib1g-dev
+	USERNAME@domain.net:~$ sudo apt-get install -y libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm
+	USERNAME@domain.net:~$ sudo apt-get install -y libncurses5-dev  libncursesw5-dev xz-utils tk-dev
+	
+	USERNAME@domain.net:~$ wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
+	USERNAME@domain.net:~$ tar xvf Python-3.7.3.tgz
+	USERNAME@domain.net:~$ cd Python-3.7.3/
+	USERNAME@domain.net:~/Python-3.7.3$ ./configure --enable-optimization
+	USERNAME@domain.net:~/Python-3.7.3$ make -j8
+	USERNAME@domain.net:~/Python-3.7.3$ sudo make altinstall
+	USERNAME@domain.net:~/Python-3.7.3$ python3.7
+	
+If after these actions the python 3.7 interpreter was started, the installation was successful.
+
+Now we are going to install mysql.
+
+	USERNAME@domain.net:~$ sudo apt-get install mysql-server mysql-client
+	USERNAME@domain.net:~$ sudo service mysql start
+	
+Set a root password:
+
+	USERNAME@domain.net:~$ mysqladmin -u root password PASSWORD
+	
+Make security settings.
+
+	USERNAME@domain.net:~$ sudo mysql_secure_installation
+	
+The next step is to install the git, nginx server and supervisor.
+	
+	USERNAME@domain.net:~$ sudo apt install git nginx supervisor
+	
+If you need to reinstall nginx, do the following:
+	
+	USERNAME@domain.net:~$ sudo apt-get remove nginx*
+	USERNAME@domain.net:~$ sudo rm -rf /etc/nginx/ /usr/sbin/nginx /usr/share/man/man1/nginx.1.gz
+	USERNAME@domain.net:~$ sudo apt-get --purge autoremove nginx && sudo dpkg --purge nginx
+	USERNAME@domain.net:~$ sudo apt-get -o DPkg::options::=--force-confmiss --reinstall install nginx
+	
+Configure nginx:
+	
+	USERNAME@domain.net:~$ sudo nano /etc/nginx/sites-available/default
+	
+In the nano editor, we delete all the entries and write the following:
+	
+	server {
+    listen 80;
+    server_name 111.222.333.44;
+    access_log  /var/log/nginx/example.log;
+	client_max_body_size 32m;
+	
+    location /static/ {
+        root /home/user/myprojectenv/myproject/myproject/;
+        expires 1d;
+    }
+ 
+	location /media/  {
+        root /home/user/myprojectenv/myproject/myproject/;
+        expires -1d;
+		}
+    location / {
+        proxy_pass http://127.0.0.1:8000; 
+        proxy_set_header Host $server_name;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+Restart or start nginx to apply changes.
+
+		USERNAME@domain.net:~$ sudo service nginx start
+		USERNAME@domain.net:~$ sudo service nginx restart
+		
+If all goes well, you should get error 502 bad gateway at 111.222.333.44:80.
+
+The server is configured. Now we will deploy the project.
+To start, let's create a virtual environment with the name venv.
+
+	USERNAME@domain.net:~$ python3.7 -m  venv venv
+	
+To run a virtual environment write:
+	
+	USERNAME@domain.net:~$ source venv/bin/activate
+
+We clone a repository with the project from github.
+
+	(venv) USERNAME@domain.net:~$ git clone https://github.com/teamdroid/recipecraft-web.git
+
+Go to the directory with the django project and install the necessary dependencies.
+
+	(venv) USERNAME@domain.net:~/recipecraft-web$ cd web/api/django/
+	(venv) USERNAME@domain.net:~/recipecraft-web/web/api/django$ pip install -r req.txt
+	(venv) USERNAME@domain.net:~/recipecraft-web/web/api/django$ pip install --upgrade pip
+
+The next step is to enter the correct values in all settings files (gunicorn.conf.py, reipecraft.conf, prod_setting.py).
+
+Create and configure a database:
+Create a database.
+
+	USERNAME@domain.net:~$ sudo mysqladmin -u root create DATABASENAME
+	
+Recover database from dump.
+
+	USERNAME@domain.net:~$  sudo mysql -u root DATABASENAME < /home/_USERNAME_/recipecraft-web/web/sql/dumps/dump-recipecraft-201904162136.sql
+
+Database configure.
+
+	USERNAME@domain.net:~$  sudo nano /etc/my.cnf
+
+Replace everything in the my.cnf file to the following lines:
+
+	[client]
+	port=3306
+
+	[mysqld]
+	port=3306
+	character-set-server=utf8
+	sql-mode=""
+	explicit_defaults_for_timestamp = TRUE
+	skip-external-locking
+	key_buffer_size = 16M
+	max_allowed_packet = 1M
+	table_open_cache = 64
+	sort_buffer_size = 512K
+	net_buffer_length = 8K
+	read_buffer_size = 256K
+	read_rnd_buffer_size = 512K
+	myisam_sort_buffer_size = 8M
+
+Male migrations and migrate project models to database.
+
+	(venv) USERNAME@domain.net:~/recipecraft-web/web/api/django$ python manage.py makemigrations
+	(venv) USERNAME@domain.net:~/recipecraft-web/web/api/django$ python manage.py migrate
+
+Install gunicorn web server.
+
+	(venv) USERNAME@domain.net:~/recipecraft-web/web/api/django$ pip install gunicorn
+
+Configurate supervisor to keep gunicorn server running.
+	
+	(venv) USERNAME@domain.net:~$ cd /etc/supervisor/conf.d/
+	(venv) USERNAME@domain.net:~/etc/supervisor/conf.d$ sudo ln /home/__USERNAME__/recipecraft-web/web/api/django/configurations/recipecraft.conf
+
+Activate the supervisor daemon	
+
+	(venv) USERNAME@domain.net:~/etc/supervisor/conf.d$ sudo sudo update-rc.d supervisor enable
+	
+Run the supervisor.
+
+	(venv) USERNAME@domain.net:~/etc/supervisor/conf.d$ sudo service supervisor start
+	(venv) USERNAME@domain.net:~/etc/supervisor/conf.d$ sudo supervisorctl reread
+	(venv) USERNAME@domain.net:~/etc/supervisor/conf.d$ sudo supervisorctl update
+
+Let's collect stitics.
+
+	(venv) USERNAME@domain.net:~/recipecraft-web/web/api/django$ python manage.py collectstatic
+	
+We can conficurate automatic activation of the virtual environment venv.
+
+	USERNAME@domain.net:~$ sudo nano .bashrc
+
+Add this line to the end of the file:
+	
+	source bin/venv/activate
+
+
+All done!
+

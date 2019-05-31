@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container upload-container">
+        <div class="row">
+            <div class="col-sm">
+                <form action="#" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <h1>Upload</h1>
+                    <div class="form-group">
+                        <label for="uploadFile">Example file input</label>
+                        <input type="file" class="form-control-file" id="uploadFile" name="file">
+                        <button type="submit" class="btn btn-outline-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Название</th>
+            <th scope="col">Дата</th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for file_item in files %}
+            <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ file_item.file.name }}</td>
+                <td>{{ file_item.upload_date }}</td>
+                <td>
+                    <a href="{{ file_item.file.url }}" download>
+                        <button type="submit" class="btn btn-outline-success">Download</button>
+                    </a>
+                </td>
+                <td>
+                    <form method="get" action="{% url 'delete_file' pk=file_item.pk %}">
+                        <button type="submit" class="btn btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

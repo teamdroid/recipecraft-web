@@ -1,0 +1,12 @@
+.idea
+__pycache__/
+*/__pycache__/
+*.py[cod]
+.pyc
+venv
+migrations 
+local_settings.py
+admin/
+easy_select2/
+rest_framework/
+apps/
