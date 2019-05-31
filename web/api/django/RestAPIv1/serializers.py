@@ -18,14 +18,14 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id_ingredient = serializers.ReadOnlyField(source='ingredient.id_ingredient')
-    ingredient_title = serializers.ReadOnlyField(source='ingredient.title_ru')
+    title = serializers.ReadOnlyField(source='ingredient.title_ru')
     id_unit_measure = serializers.ReadOnlyField(source='unit_measure.id_unit_measure')
     measure_title = serializers.ReadOnlyField(source='unit_measure.title_ru')
 
     class Meta:
         model = RecipeIngredient
         fields = ('id_ingredient',
-                  'ingredient_title',
+                  'title',
                   'amount',
                   'id_unit_measure',
                   'measure_title')
