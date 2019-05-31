@@ -35,7 +35,7 @@ class Instruction(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
-                               related_name='recipe_ingredients',
+                               related_name='ingredients',
                                db_column='idRecipe')
     ingredient = models.ForeignKey('Ingredient',
                                    on_delete=models.CASCADE,

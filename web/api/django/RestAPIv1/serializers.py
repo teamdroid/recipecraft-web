@@ -33,7 +33,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Main serializer for /getRecipes/ view"""
-    recipe_ingredients = RecipeIngredientSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(many=True)
     instructions = InstructionSerializer(many=True)
 
     class Meta:
@@ -45,7 +45,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'url_source',
                   'portion',
                   'type',
-                  'recipe_ingredients',
+                  'ingredients',
                   'instructions')
 
 
