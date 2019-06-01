@@ -110,9 +110,9 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': (
         'rest_framework.throttling.ScopedRateThrottle',
     ),
-    'DEFAULT_THROTTLE_RATES': {
-        'send_reports': '1/day',
-    },
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'send_reports': '1/day',
+    # },
 }
 
 # Internationalization
