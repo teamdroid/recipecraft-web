@@ -1,4 +1,7 @@
+import os
+
 from django.db import models
+from django.dispatch import receiver
 
 
 class Ingredient(models.Model):
@@ -53,11 +56,16 @@ class RecipeIngredient(models.Model):
 
 
 class Recipe(models.Model):
-    id_recipe = models.AutoField(db_column='idRecipe', primary_key=True)
+    id_recipe = models.AutoField(db_column='idRecipe',
+                                 primary_key=True,
+                                 blank=False,
+                                 null=False,
+                                 unique=True,
+                                 default=0)
     title_ru = models.CharField(max_length=100, blank=True, null=True)
     title_en = models.CharField(max_length=100, blank=True, null=True)
     time = models.IntegerField(blank=True, null=True)
-    image = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='img/', null=True, blank=True)
     portion = models.IntegerField(blank=True, null=True)
     type = models.CharField(max_length=100, blank=True, null=True)
     url_source = models.CharField(max_length=100, blank=True, null=True)
@@ -66,8 +74,16 @@ class Recipe(models.Model):
         return self.title_ru
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'recipes'
+
+
+@receiver(models.signals.post_delete, sender=Recipe)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """Deletes image from file system"""
+    if instance.image:
+        if os.path.isfile(instance.image.path):
+            os.remove(instance.image.path)
 
 
 class ReportMessage(models.Model):
